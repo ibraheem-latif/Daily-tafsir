@@ -16,8 +16,11 @@ import json
 import re
 import time
 import html as html_mod
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
+
+# UK timezone (GMT+0, no DST during Ramadan Feb-Mar)
+UK_TZ = timezone(timedelta(hours=0))
 
 # --- Config ---
 TAFSIR_RESOURCE_ID = 169  # Ibn Kathir (English, abridged)
@@ -64,12 +67,15 @@ JUZ_FIRST_VERSE = {
 }
 
 
-def get_today_juz() -> int:
-    """Determine which juz to cover today (cycles 1-30)."""
-    start_date = datetime(2026, 2, 23, tzinfo=timezone.utc)
-    today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+def get_today_juz() -> int | None:
+    """Determine which juz to cover today. Returns None if all 30 are done."""
+    start_date = datetime(2026, 2, 18, tzinfo=UK_TZ)  # 1st Ramadan 2026
+    today = datetime.now(UK_TZ).replace(hour=0, minute=0, second=0, microsecond=0)
     day_number = (today - start_date).days
-    return (day_number % 30) + 1
+    juz = day_number + 1  # Day 0 = Juz 1, Day 29 = Juz 30
+    if juz < 1 or juz > 30:
+        return None
+    return juz
 
 
 # ---------------------------------------------------------------------------
@@ -461,7 +467,7 @@ def build_html(juz_number: int, summary: str, tafsirs: list[dict], word_count: i
     full_tafsir_html = "\n".join(tafsir_sections)
     jumpbar_html = "\n".join(jumpbar_links)
 
-    today = datetime.now(timezone.utc).strftime("%A, %d %B %Y")
+    today = datetime.now(UK_TZ).strftime("%A, %d %B %Y")
     juz_name = JUZ_NAMES.get(juz_number, "")
     juz_name_ar = JUZ_NAMES_AR.get(juz_number, "")
 
@@ -549,7 +555,13 @@ def main():
     local_mode = "--local" in sys.argv
 
     juz_number_override = os.environ.get("JUZ_NUMBER")
-    juz_number = int(juz_number_override) if juz_number_override else get_today_juz()
+    if juz_number_override:
+        juz_number = int(juz_number_override)
+    else:
+        juz_number = get_today_juz()
+        if juz_number is None:
+            print("All 30 juz have been completed. No more runs needed.")
+            return
 
     print(f"Generating tafsir for Juz {juz_number} ({JUZ_NAMES.get(juz_number, '')})...")
     if local_mode:
@@ -590,7 +602,7 @@ def main():
     if manifest_path.exists():
         manifest = json.loads(manifest_path.read_text())
     manifest[str(juz_number)] = {
-        "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "date": datetime.now(UK_TZ).strftime("%Y-%m-%d"),
         "word_count": word_count,
     }
     manifest_path.write_text(json.dumps(manifest, indent=2))

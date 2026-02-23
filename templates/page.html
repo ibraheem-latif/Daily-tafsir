@@ -5,195 +5,336 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Juz {{JUZ_NUMBER}} — Daily Tafsir</title>
 
-    <!-- Social sharing (WhatsApp preview) -->
     <meta property="og:title" content="Juz {{JUZ_NUMBER}} ({{JUZ_NAME}}) — Daily Tafsir Ibn Kathir">
     <meta property="og:description" content="Today's tafsir summary and full commentary for Juz {{JUZ_NUMBER}} of the Quran.">
     <meta property="og:type" content="article">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
     <style>
         :root {
-            --bg: #fafaf7;
-            --surface: #ffffff;
-            --text: #1a1a1a;
-            --text-secondary: #555;
-            --accent: #1b6b4a;
-            --accent-light: #e8f5ee;
-            --border: #e5e5e0;
-            --gold: #c9a84c;
+            --bg: #f5f0e8;
+            --surface: #faf7f2;
+            --text: #2c2416;
+            --text-secondary: #6b5d4d;
+            --accent: #1a5c3a;
+            --accent-light: #e4efe8;
+            --border: #d4cbbf;
+            --gold: #b8860b;
+            --gold-light: #d4a843;
+            --gold-faint: rgba(184, 134, 11, 0.08);
+            --warm: #8b4513;
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg: #111110;
-                --surface: #1c1c1a;
-                --text: #e8e8e3;
-                --text-secondary: #999;
-                --accent: #3da874;
+                --bg: #0f0e0c;
+                --surface: #1a1814;
+                --text: #e8e0d4;
+                --text-secondary: #9a8e7f;
+                --accent: #4db87a;
                 --accent-light: #1a2e23;
-                --border: #2a2a28;
-                --gold: #d4b456;
+                --border: #2e2a24;
+                --gold: #d4a843;
+                --gold-light: #e8c064;
+                --gold-faint: rgba(212, 168, 67, 0.06);
+                --warm: #c4844a;
             }
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Crimson Pro', Georgia, 'Times New Roman', serif;
             background: var(--bg);
             color: var(--text);
-            line-height: 1.7;
+            line-height: 1.8;
             -webkit-font-smoothing: antialiased;
         }
 
         .container {
-            max-width: 720px;
+            max-width: 740px;
             margin: 0 auto;
-            padding: 2rem 1.25rem 4rem;
+            padding: 1rem 1.25rem 4rem;
         }
 
-        /* Header */
+        /* ══════ Ornamental divider ══════ */
+        .ornament {
+            text-align: center;
+            color: var(--gold);
+            font-size: 1.5rem;
+            letter-spacing: 0.5em;
+            margin: 1.5rem 0;
+            opacity: 0.6;
+        }
+
+        .ornament-line {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .ornament-line::before,
+        .ornament-line::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--gold), transparent);
+            opacity: 0.4;
+        }
+
+        .ornament-line span {
+            color: var(--gold);
+            font-size: 1.2rem;
+        }
+
+        /* ══════ Header ══════ */
         header {
             text-align: center;
-            padding: 2rem 0 1.5rem;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 2rem;
+            padding: 2.5rem 0 0;
+        }
+
+        .bismillah {
+            font-family: 'Amiri', serif;
+            font-size: 2rem;
+            color: var(--gold);
+            direction: rtl;
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
         }
 
         .juz-label {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: var(--accent);
+            letter-spacing: 0.2em;
+            color: var(--text-secondary);
             font-weight: 600;
         }
 
+        .juz-name-ar {
+            font-family: 'Amiri', serif;
+            font-size: 2.8rem;
+            direction: rtl;
+            color: var(--gold);
+            line-height: 1.5;
+            margin: 0.5rem 0 0.25rem;
+        }
+
         h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin: 0.25rem 0;
-            letter-spacing: -0.02em;
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.6rem;
+            font-weight: 300;
+            letter-spacing: 0.04em;
+            color: var(--text);
         }
 
         .juz-name {
             color: var(--text-secondary);
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             font-style: italic;
+            margin-top: 0.15rem;
         }
 
         .meta {
             margin-top: 0.75rem;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-secondary);
+            letter-spacing: 0.02em;
         }
 
-        /* Summary card */
+        /* ══════ Summary card ══════ */
         .summary-card {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.75rem;
-            margin-bottom: 2rem;
+            border-radius: 2px;
+            padding: 2rem 2rem 1.75rem;
+            margin-bottom: 0;
+            position: relative;
+        }
+
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(to right, transparent, var(--gold), transparent);
+            opacity: 0.5;
         }
 
         .summary-card h2 {
-            font-size: 1rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--accent);
-            margin-bottom: 1rem;
+            letter-spacing: 0.2em;
+            color: var(--gold);
+            margin-bottom: 1.25rem;
             font-weight: 600;
+            font-family: 'Crimson Pro', serif;
         }
 
         .summary-text {
-            font-size: 1.05rem;
+            font-size: 1.1rem;
+            line-height: 1.9;
         }
 
-        .summary-text h3 { font-size: 1.15rem; margin: 1.25rem 0 0.5rem; color: var(--text); }
-        .summary-text h4 { font-size: 1.05rem; margin: 1rem 0 0.4rem; color: var(--text); }
-        .summary-text p { margin-bottom: 0.75rem; }
-        .summary-text ul { margin: 0.5rem 0 0.75rem 1.25rem; }
-        .summary-text li { margin-bottom: 0.3rem; }
+        .summary-text h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.6rem;
+            color: var(--text);
+        }
 
-        /* Share button */
+        .summary-text h4 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 1.25rem 0 0.5rem;
+            color: var(--text);
+        }
+
+        .summary-text p {
+            margin-bottom: 0.9rem;
+        }
+
+        .summary-text ul {
+            margin: 0.5rem 0 1rem 1.5rem;
+        }
+
+        .summary-text li {
+            margin-bottom: 0.35rem;
+        }
+
+        .summary-text strong {
+            color: var(--warm);
+            font-weight: 600;
+        }
+
+        /* ══════ Share buttons ══════ */
         .share-row {
             display: flex;
             gap: 0.75rem;
-            margin-top: 1.25rem;
+            margin-top: 1.75rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border);
             flex-wrap: wrap;
         }
 
         .share-btn {
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 500;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 2px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: 'Crimson Pro', serif;
+            letter-spacing: 0.03em;
             text-decoration: none;
             border: 1px solid var(--border);
             color: var(--text);
-            background: var(--surface);
+            background: transparent;
             cursor: pointer;
-            transition: background 0.15s;
+            transition: all 0.2s;
         }
 
-        .share-btn:hover { background: var(--accent-light); }
+        .share-btn:hover {
+            background: var(--gold-faint);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
 
-        .share-btn.whatsapp { border-color: #25d366; color: #25d366; }
-        .share-btn.copy { border-color: var(--accent); color: var(--accent); }
+        .share-btn.whatsapp:hover { border-color: #25d366; color: #25d366; }
 
-        /* Full tafsir */
+        /* ══════ Full tafsir ══════ */
         .full-tafsir {
-            margin-top: 2rem;
+            margin-top: 0;
         }
 
         .full-tafsir-toggle {
             width: 100%;
-            padding: 1rem;
+            padding: 1.1rem;
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            font-size: 1rem;
+            border-top: none;
+            border-radius: 0 0 2px 2px;
+            font-size: 0.8rem;
             font-weight: 600;
+            font-family: 'Crimson Pro', serif;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
             color: var(--accent);
             cursor: pointer;
-            transition: background 0.15s;
+            transition: all 0.2s;
         }
 
-        .full-tafsir-toggle:hover { background: var(--accent-light); }
+        .full-tafsir-toggle:hover {
+            background: var(--accent-light);
+        }
 
         .full-tafsir-content {
-            display: none;
-            margin-top: 1rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
         }
 
-        .full-tafsir-content.open { display: block; }
+        .full-tafsir-content.open {
+            max-height: none;
+        }
 
         .verse-tafsir {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+            border-radius: 2px;
+            padding: 1.75rem 2rem;
+            margin-top: 1rem;
+            position: relative;
         }
 
         .verse-key {
-            font-size: 0.85rem;
-            color: var(--accent);
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            font-family: monospace;
+            font-size: 0.7rem;
+            color: var(--gold);
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-family: 'Crimson Pro', serif;
+            display: inline-block;
+            background: var(--gold-faint);
+            padding: 0.2rem 0.7rem;
+            border-radius: 2px;
+            margin-bottom: 1rem;
+        }
+
+        .verse-arabic {
+            font-family: 'Amiri', serif;
+            font-size: 1.6rem;
+            direction: rtl;
+            text-align: right;
+            color: var(--text);
+            line-height: 2.2;
+            padding: 1rem 0.5rem;
+            margin-bottom: 1.25rem;
+            background: var(--gold-faint);
+            border-radius: 2px;
+            border-right: 3px solid var(--gold);
         }
 
         .verse-text {
-            font-size: 0.95rem;
-            line-height: 1.8;
+            font-size: 1rem;
+            line-height: 1.85;
         }
 
-        .verse-text p { margin-bottom: 0.75rem; }
+        .verse-text p { margin-bottom: 0.8rem; }
+        .verse-text h1, .verse-text h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--warm);
+            margin: 1.25rem 0 0.5rem;
+        }
 
-        /* Archive link */
+        /* ══════ Navigation ══════ */
         .archive-nav {
             display: flex;
             justify-content: space-between;
@@ -206,29 +347,45 @@
         .archive-nav a {
             color: var(--accent);
             text-decoration: none;
+            font-weight: 600;
+            letter-spacing: 0.02em;
         }
 
         .archive-nav a:hover { text-decoration: underline; }
 
-        /* Footer */
+        /* ══════ Footer ══════ */
         footer {
             text-align: center;
-            margin-top: 3rem;
+            margin-top: 2.5rem;
             padding-top: 1.5rem;
-            border-top: 1px solid var(--border);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-secondary);
+            letter-spacing: 0.02em;
+        }
+
+        /* ══════ Responsive ══════ */
+        @media (max-width: 600px) {
+            .container { padding: 0.75rem 1rem 3rem; }
+            .juz-name-ar { font-size: 2.2rem; }
+            .bismillah { font-size: 1.6rem; }
+            .summary-card { padding: 1.5rem 1.25rem; }
+            .verse-tafsir { padding: 1.25rem 1rem; }
+            .verse-arabic { font-size: 1.35rem; padding: 0.75rem 0.5rem; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
+            <div class="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>
             <div class="juz-label">Daily Tafsir Ibn Kathir</div>
+            <div class="juz-name-ar">{{JUZ_NAME_AR}}</div>
             <h1>Juz {{JUZ_NUMBER}}</h1>
             <div class="juz-name">{{JUZ_NAME}}</div>
             <div class="meta">{{DATE}} &middot; {{WORD_COUNT}} words of commentary</div>
         </header>
+
+        <div class="ornament-line"><span>&#10022;</span></div>
 
         <div class="summary-card">
             <h2>Today's Summary</h2>
@@ -246,7 +403,7 @@
 
         <div class="full-tafsir">
             <button class="full-tafsir-toggle" onclick="toggleTafsir()">
-                Read Full Tafsir ▾
+                Read Full Tafsir &#9662;
             </button>
             <div class="full-tafsir-content" id="tafsir-body">
                 {{FULL_TAFSIR}}
@@ -254,7 +411,8 @@
         </div>
 
         <nav class="archive-nav">
-            <a href="juz-{{JUZ_NUMBER}}.html">Permalink for this juz</a>
+            <a href="index.html">&larr; All Juz</a>
+            <a href="juz-{{JUZ_NUMBER}}.html">Permalink</a>
         </nav>
 
         <footer>
@@ -263,7 +421,6 @@
     </div>
 
     <script>
-        // WhatsApp share link
         const title = `Juz {{JUZ_NUMBER}} ({{JUZ_NAME}}) — Daily Tafsir Summary`;
         const url = window.location.href;
         const waText = encodeURIComponent(`${title}\n\n${url}`);
@@ -273,9 +430,9 @@
             const body = document.getElementById('tafsir-body');
             const btn = document.querySelector('.full-tafsir-toggle');
             body.classList.toggle('open');
-            btn.textContent = body.classList.contains('open')
-                ? 'Hide Full Tafsir ▴'
-                : 'Read Full Tafsir ▾';
+            btn.innerHTML = body.classList.contains('open')
+                ? 'Hide Full Tafsir &#9652;'
+                : 'Read Full Tafsir &#9662;';
         }
 
         function copyLink() {

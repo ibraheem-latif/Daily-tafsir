@@ -8,7 +8,7 @@ summarises it with Claude Haiku, and generates a static HTML page.
 import os
 import json
 import re
-import html
+import html as html_mod
 import requests
 import anthropic
 from datetime import datetime, timezone
@@ -44,24 +44,37 @@ def get_today_juz() -> int:
     return (day_number % 30) + 1
 
 
+def get_juz_verse_keys(juz_number: int) -> list[str]:
+    """Get all verse keys (e.g. '4:148') for a given juz."""
+    resp = requests.get(f"{QURAN_API_BASE}/juzs", timeout=30)
+    resp.raise_for_status()
+    juzs = resp.json().get("juzs", [])
+
+    juz = next((j for j in juzs if j["juz_number"] == juz_number), None)
+    if not juz:
+        raise ValueError(f"Juz {juz_number} not found")
+
+    verse_keys = []
+    for surah, verse_range in juz["verse_mapping"].items():
+        start, end = verse_range.split("-")
+        for v in range(int(start), int(end) + 1):
+            verse_keys.append(f"{surah}:{v}")
+    return verse_keys
+
+
 def fetch_tafsir(juz_number: int) -> list[dict]:
-    """Fetch all tafsir entries for a given juz from Quran.com API."""
+    """Fetch tafsir for every verse in a juz via the per-ayah endpoint."""
+    verse_keys = get_juz_verse_keys(juz_number)
     tafsirs = []
-    page = 1
 
-    while True:
-        url = f"{QURAN_API_BASE}/quran/tafsirs/{TAFSIR_RESOURCE_ID}"
-        params = {"juz_number": juz_number, "page": page}
-        resp = requests.get(url, params=params, timeout=30)
+    for vk in verse_keys:
+        url = f"{QURAN_API_BASE}/tafsirs/{TAFSIR_RESOURCE_ID}/by_ayah/{vk}"
+        resp = requests.get(url, timeout=30)
         resp.raise_for_status()
-        data = resp.json()
-
-        tafsirs.extend(data.get("tafsirs", []))
-
-        pagination = data.get("pagination", {})
-        if page >= pagination.get("total_pages", 1):
-            break
-        page += 1
+        data = resp.json().get("tafsir", {})
+        text = data.get("text", "")
+        if text.strip():
+            tafsirs.append({"verse_key": vk, "text": text})
 
     return tafsirs
 
@@ -69,7 +82,57 @@ def fetch_tafsir(juz_number: int) -> list[dict]:
 def strip_html_tags(text: str) -> str:
     """Remove HTML tags for the plain text version sent to Claude."""
     clean = re.sub(r"<[^>]+>", "", text)
-    return html.unescape(clean)
+    return html_mod.unescape(clean)
+
+
+def markdown_to_html(text: str) -> str:
+    """Convert basic markdown to HTML."""
+    lines = text.split("\n")
+    result = []
+    in_list = False
+
+    for line in lines:
+        stripped = line.strip()
+
+        # Headers
+        if stripped.startswith("### "):
+            if in_list:
+                result.append("</ul>")
+                in_list = False
+            result.append(f"<h4>{stripped[4:]}</h4>")
+        elif stripped.startswith("## "):
+            if in_list:
+                result.append("</ul>")
+                in_list = False
+            result.append(f"<h3>{stripped[3:]}</h3>")
+        elif stripped.startswith("# "):
+            if in_list:
+                result.append("</ul>")
+                in_list = False
+            result.append(f"<h3>{stripped[2:]}</h3>")
+        elif stripped.startswith("- "):
+            if not in_list:
+                result.append("<ul>")
+                in_list = True
+            result.append(f"<li>{stripped[2:]}</li>")
+        elif stripped == "":
+            if in_list:
+                result.append("</ul>")
+                in_list = False
+            result.append("")
+        else:
+            if in_list:
+                result.append("</ul>")
+                in_list = False
+            result.append(f"<p>{stripped}</p>")
+
+    if in_list:
+        result.append("</ul>")
+
+    html = "\n".join(result)
+    # Bold
+    html = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", html)
+    return html
 
 
 def build_plain_text(tafsirs: list[dict]) -> str:
@@ -121,7 +184,7 @@ def build_html(juz_number: int, summary: str, tafsirs: list[dict], word_count: i
         if text.strip():
             tafsir_sections.append(
                 f'<div class="verse-tafsir">'
-                f'<h3 class="verse-key">{html.escape(verse_key)}</h3>'
+                f'<h3 class="verse-key">{html_mod.escape(verse_key)}</h3>'
                 f'<div class="verse-text">{text}</div>'
                 f'</div>'
             )
@@ -130,11 +193,14 @@ def build_html(juz_number: int, summary: str, tafsirs: list[dict], word_count: i
     today = datetime.now(timezone.utc).strftime("%A, %d %B %Y")
     juz_name = JUZ_NAMES.get(juz_number, "")
 
+    # Convert markdown summary to HTML
+    summary_html = markdown_to_html(summary)
+
     # Replace placeholders
     output = template.replace("{{JUZ_NUMBER}}", str(juz_number))
-    output = output.replace("{{JUZ_NAME}}", html.escape(juz_name))
+    output = output.replace("{{JUZ_NAME}}", html_mod.escape(juz_name))
     output = output.replace("{{DATE}}", today)
-    output = output.replace("{{SUMMARY}}", summary)
+    output = output.replace("{{SUMMARY}}", summary_html)
     output = output.replace("{{FULL_TAFSIR}}", full_tafsir_html)
     output = output.replace("{{WORD_COUNT}}", f"{word_count:,}")
 

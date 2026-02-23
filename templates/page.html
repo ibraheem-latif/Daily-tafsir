@@ -212,6 +212,19 @@
             font-weight: 600;
         }
 
+        .verse-ref {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 1px dotted var(--gold);
+            transition: all 0.15s;
+        }
+
+        .verse-ref:hover {
+            color: var(--warm);
+            border-bottom-color: var(--warm);
+        }
+
         /* ══════ Share buttons ══════ */
         .share-row {
             display: flex;
@@ -284,13 +297,78 @@
             max-height: none;
         }
 
+        /* Verse jump bar */
+        .verse-jumpbar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            padding: 1rem 1.25rem;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .verse-jumpbar-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 0.6rem;
+        }
+
+        .verse-jumpbar-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+
+        .verse-jumpbar-links a {
+            display: inline-block;
+            padding: 0.25rem 0.55rem;
+            font-size: 0.7rem;
+            font-family: 'Crimson Pro', serif;
+            font-weight: 600;
+            color: var(--gold);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        .verse-jumpbar-links a:hover {
+            background: var(--gold-faint);
+            border-color: var(--gold);
+        }
+
+        /* Verse cards */
         .verse-tafsir {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 2px;
-            padding: 1.75rem 2rem;
-            margin-top: 1rem;
+            margin-top: 0.6rem;
             position: relative;
+            scroll-margin-top: 1rem;
+        }
+
+        .verse-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            user-select: none;
+        }
+
+        .verse-header:hover {
+            background: var(--gold-faint);
+        }
+
+        .verse-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-width: 0;
         }
 
         .verse-key {
@@ -300,11 +378,42 @@
             letter-spacing: 0.15em;
             text-transform: uppercase;
             font-family: 'Crimson Pro', serif;
-            display: inline-block;
             background: var(--gold-faint);
             padding: 0.2rem 0.7rem;
             border-radius: 2px;
-            margin-bottom: 1rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .verse-preview-ar {
+            font-family: 'Amiri', serif;
+            font-size: 1.05rem;
+            direction: rtl;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+
+        .verse-toggle-icon {
+            color: var(--gold);
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+
+        .verse-tafsir.open .verse-toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .verse-body {
+            display: none;
+            padding: 0 2rem 1.75rem;
+        }
+
+        .verse-tafsir.open .verse-body {
+            display: block;
         }
 
         .verse-arabic {
@@ -332,6 +441,39 @@
             font-weight: 600;
             color: var(--warm);
             margin: 1.25rem 0 0.5rem;
+        }
+
+        /* Back to top */
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 44px;
+            height: 44px;
+            background: var(--surface);
+            border: 1px solid var(--gold);
+            border-radius: 50%;
+            color: var(--gold);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .back-to-top:hover {
+            background: var(--gold);
+            color: var(--surface);
         }
 
         /* ══════ Navigation ══════ */
@@ -406,9 +548,17 @@
                 Read Full Tafsir &#9662;
             </button>
             <div class="full-tafsir-content" id="tafsir-body">
+                <div class="verse-jumpbar">
+                    <div class="verse-jumpbar-label">Jump to verse</div>
+                    <div class="verse-jumpbar-links" id="jumpbar-links">
+                        {{VERSE_JUMPBAR}}
+                    </div>
+                </div>
                 {{FULL_TAFSIR}}
             </div>
         </div>
+
+        <button class="back-to-top" id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#9650;</button>
 
         <nav class="archive-nav">
             <a href="index.html">&larr; All Juz</a>
@@ -433,6 +583,39 @@
             btn.innerHTML = body.classList.contains('open')
                 ? 'Hide Full Tafsir &#9652;'
                 : 'Read Full Tafsir &#9662;';
+        }
+
+        // Toggle individual verse cards
+        document.addEventListener('click', function(e) {
+            const header = e.target.closest('.verse-header');
+            if (!header) return;
+            header.closest('.verse-tafsir').classList.toggle('open');
+        });
+
+        // Back to top button
+        const btt = document.getElementById('back-to-top');
+        window.addEventListener('scroll', function() {
+            btt.classList.toggle('visible', window.scrollY > 600);
+        });
+
+        // Open tafsir section and expand a specific verse when clicking a verse link
+        function openVerse(verseId) {
+            const body = document.getElementById('tafsir-body');
+            const btn = document.querySelector('.full-tafsir-toggle');
+            // Open the full tafsir if closed
+            if (!body.classList.contains('open')) {
+                body.classList.add('open');
+                btn.innerHTML = 'Hide Full Tafsir &#9652;';
+            }
+            // Open the target verse card
+            const card = document.getElementById(verseId);
+            if (card && !card.classList.contains('open')) {
+                card.classList.add('open');
+            }
+            // Scroll to it after a brief delay for layout
+            setTimeout(() => {
+                card && card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
         }
 
         function copyLink() {

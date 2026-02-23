@@ -190,17 +190,19 @@ This juz covers key themes of **divine guidance**, **reflection on creation**, a
 
 ### Major Themes
 
-The opening verses establish the foundational message of the surah, connecting the believers to the broader narrative of prophetic history. Ibn Kathir draws upon classical scholarship to illuminate the depth of each verse.
+The opening verse ({juz_number}:1) establishes the foundational message of the surah, connecting the believers to the broader narrative of prophetic history. Ibn Kathir draws upon classical scholarship to illuminate the depth of each verse.
+
+In {juz_number}:2, we find a powerful call to reflect upon the signs of Allah in creation. The scholars have noted how this connects to the broader themes of gratitude and awareness.
 
 ### Key Rulings
 
-- Matters of worship and their proper observance
-- Social conduct and the rights of others
-- The importance of maintaining family ties and community bonds
+- Matters of worship and their proper observance ({juz_number}:1)
+- Social conduct and the rights of others ({juz_number}:2)
+- The importance of maintaining family ties and community bonds ({juz_number}:3)
 
 ### Spiritual Lessons
 
-The tafsir emphasises that true understanding of the Quran requires both intellectual engagement and spiritual sincerity. The scholars remind us that each verse carries layers of meaning that reveal themselves to those who approach with humility.
+The tafsir elaborates on the specific rulings in {juz_number}:3, emphasising that true understanding of the Quran requires both intellectual engagement and spiritual sincerity. The scholars remind us that each verse carries layers of meaning that reveal themselves to those who approach with humility.
 
 ### Overarching Message
 
@@ -263,6 +265,22 @@ def markdown_to_html(text: str) -> str:
     html = "\n".join(result)
     html = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", html)
     return html
+
+
+def linkify_verses(html: str, verse_keys: set[str]) -> str:
+    """Replace verse references (e.g. 4:148) with links to the full tafsir section."""
+    def replace_match(m):
+        ref = m.group(0)
+        if ref in verse_keys:
+            verse_id = f"v-{ref.replace(':', '-')}"
+            return (
+                f'<a href="#{verse_id}" class="verse-ref" '
+                f'onclick="openVerse(\'{verse_id}\')">{ref}</a>'
+            )
+        return ref
+
+    # Match patterns like 2:142, 4:148, 112:1 — but not inside existing tags/attributes
+    return re.sub(r'(?<![#\w/-])(\d{1,3}:\d{1,3})(?!["\w])', replace_match, html)
 
 
 def build_plain_text(tafsirs: list[dict]) -> str:
@@ -348,6 +366,7 @@ Below are summaries of each section of the juz. Merge them into one cohesive sum
 - Opens with which surahs/verses this juz covers
 - Highlights the major themes, stories, and lessons
 - Notes any key rulings or guidance mentioned
+- References specific verses using the format surah:verse (e.g. 5:82, 6:1) when discussing key points, so readers can look them up
 - Closes with the overarching message of the juz
 - Is written in clear, accessible English
 - Is around 500-700 words
@@ -371,6 +390,7 @@ Write a detailed overview summary that:
 - Opens with which surahs/verses this juz covers
 - Highlights the major themes, stories, and lessons
 - Notes any key rulings or guidance mentioned
+- References specific verses using the format surah:verse (e.g. 5:82, 6:1) when discussing key points, so readers can look them up
 - Closes with the overarching message of the juz
 - Is written in clear, accessible English
 - Is around 400-600 words
@@ -391,34 +411,54 @@ def build_html(juz_number: int, summary: str, tafsirs: list[dict], word_count: i
     template = TEMPLATE_PATH.read_text()
 
     tafsir_sections = []
+    jumpbar_links = []
     for t in tafsirs:
         verse_key = t.get("verse_key", "")
         text = t.get("text", "")
         uthmani = t.get("uthmani", "")
         if text.strip():
+            verse_id = f"v-{verse_key.replace(':', '-')}"
             uthmani_html = (
                 f'<div class="verse-arabic">{uthmani}</div>' if uthmani else ""
             )
+            # Truncated Arabic preview for the collapsed header
+            preview_ar = uthmani[:60] + "..." if len(uthmani) > 60 else uthmani
             tafsir_sections.append(
-                f'<div class="verse-tafsir">'
-                f'<h3 class="verse-key">{html_mod.escape(verse_key)}</h3>'
+                f'<div class="verse-tafsir" id="{verse_id}">'
+                f'<div class="verse-header">'
+                f'<div class="verse-header-left">'
+                f'<span class="verse-key">{html_mod.escape(verse_key)}</span>'
+                f'<span class="verse-preview-ar">{preview_ar}</span>'
+                f'</div>'
+                f'<span class="verse-toggle-icon">&#9662;</span>'
+                f'</div>'
+                f'<div class="verse-body">'
                 f'{uthmani_html}'
                 f'<div class="verse-text">{text}</div>'
                 f'</div>'
+                f'</div>'
+            )
+            jumpbar_links.append(
+                f'<a href="#{verse_id}">{html_mod.escape(verse_key)}</a>'
             )
     full_tafsir_html = "\n".join(tafsir_sections)
+    jumpbar_html = "\n".join(jumpbar_links)
 
     today = datetime.now(timezone.utc).strftime("%A, %d %B %Y")
     juz_name = JUZ_NAMES.get(juz_number, "")
     juz_name_ar = JUZ_NAMES_AR.get(juz_number, "")
 
     summary_html = markdown_to_html(summary)
+    # Link verse references in the summary to the full tafsir cards
+    available_verses = {t.get("verse_key", "") for t in tafsirs}
+    summary_html = linkify_verses(summary_html, available_verses)
 
     output = template.replace("{{JUZ_NUMBER}}", str(juz_number))
     output = output.replace("{{JUZ_NAME_AR}}", juz_name_ar)
     output = output.replace("{{JUZ_NAME}}", html_mod.escape(juz_name))
     output = output.replace("{{DATE}}", today)
     output = output.replace("{{SUMMARY}}", summary_html)
+    output = output.replace("{{VERSE_JUMPBAR}}", jumpbar_html)
     output = output.replace("{{FULL_TAFSIR}}", full_tafsir_html)
     output = output.replace("{{WORD_COUNT}}", f"{word_count:,}")
 
@@ -430,12 +470,9 @@ def build_index(manifest: dict) -> str:
     template = INDEX_TEMPLATE_PATH.read_text()
 
     # Find the latest juz
-    latest_juz = None
-    latest_date = ""
-    for juz_num, info in manifest.items():
-        if info["date"] > latest_date:
-            latest_date = info["date"]
-            latest_juz = int(juz_num)
+    # Highest juz number is always the latest (sequential daily generation)
+    latest_juz = max((int(k) for k in manifest), default=None)
+    latest_date = manifest[str(latest_juz)]["date"] if latest_juz else ""
 
     # Latest card
     if latest_juz:

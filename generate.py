@@ -372,7 +372,7 @@ def summarise(plain_text: str, juz_number: int) -> str:
         result = _call_claude(
             client,
             model="claude-haiku-4-5-20251001",
-            max_tokens=1024,
+            max_tokens=2048,
             messages=[{"role": "user", "content": f"""Summarise this section of Tafsir Ibn Kathir from Juz {juz_number}.
 Cover the key themes, stories, rulings, and lessons. Be thorough — this will be merged with other section summaries.
 Write 200-300 words.
@@ -390,7 +390,7 @@ Write 200-300 words.
     return _call_claude(
         client,
         model="claude-haiku-4-5-20251001",
-        max_tokens=1500,
+        max_tokens=3000,
         messages=[{"role": "user", "content": f"""You are writing the final summary for Juz {juz_number} of the Quran's Tafsir Ibn Kathir, for a Muslim audience.
 
 Below are summaries of each section of the juz. Merge them into one cohesive summary that:
@@ -414,7 +414,7 @@ def _summarise_single(client, plain_text: str, juz_number: int) -> str:
     return _call_claude(
         client,
         model="claude-haiku-4-5-20251001",
-        max_tokens=1024,
+        max_tokens=2048,
         messages=[{"role": "user", "content": f"""You are summarising Juz {juz_number} of the Quran's Tafsir Ibn Kathir for a Muslim audience.
 
 Write a detailed overview summary that:

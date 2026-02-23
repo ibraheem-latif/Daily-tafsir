@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juz 6 — Daily Tafsir</title>
+
+    <!-- Social sharing (WhatsApp preview) -->
+    <meta property="og:title" content="Juz 6 (La Yuhibbullah) — Daily Tafsir Ibn Kathir">
+    <meta property="og:description" content="Today's tafsir summary and full commentary for Juz 6 of the Quran.">
+    <meta property="og:type" content="article">
+
+    <style>
+        :root {
+            --bg: #fafaf7;
+            --surface: #ffffff;
+            --text: #1a1a1a;
+            --text-secondary: #555;
+            --accent: #1b6b4a;
+            --accent-light: #e8f5ee;
+            --border: #e5e5e0;
+            --gold: #c9a84c;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #111110;
+                --surface: #1c1c1a;
+                --text: #e8e8e3;
+                --text-secondary: #999;
+                --accent: #3da874;
+                --accent-light: #1a2e23;
+                --border: #2a2a28;
+                --gold: #d4b456;
+            }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 2rem 1.25rem 4rem;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 2rem 0 1.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .juz-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.25rem 0;
+            letter-spacing: -0.02em;
+        }
+
+        .juz-name {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        .meta {
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Summary card */
+        .summary-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card h2 {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .summary-text {
+            font-size: 1.05rem;
+            white-space: pre-line;
+        }
+
+        /* Share button */
+        .share-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .share-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            border: 1px solid var(--border);
+            color: var(--text);
+            background: var(--surface);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .share-btn:hover { background: var(--accent-light); }
+
+        .share-btn.whatsapp { border-color: #25d366; color: #25d366; }
+        .share-btn.copy { border-color: var(--accent); color: var(--accent); }
+
+        /* Full tafsir */
+        .full-tafsir {
+            margin-top: 2rem;
+        }
+
+        .full-tafsir-toggle {
+            width: 100%;
+            padding: 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--accent);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .full-tafsir-toggle:hover { background: var(--accent-light); }
+
+        .full-tafsir-content {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .full-tafsir-content.open { display: block; }
+
+        .verse-tafsir {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .verse-key {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-family: monospace;
+        }
+
+        .verse-text {
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        .verse-text p { margin-bottom: 0.75rem; }
+
+        /* Archive link */
+        .archive-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        .archive-nav a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .archive-nav a:hover { text-decoration: underline; }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="juz-label">Daily Tafsir Ibn Kathir</div>
+            <h1>Juz 6</h1>
+            <div class="juz-name">La Yuhibbullah</div>
+            <div class="meta">Monday, 23 February 2026 &middot; 0 words of commentary</div>
+        </header>
+
+        <div class="summary-card">
+            <h2>Today's Summary</h2>
+            <div class="summary-text"># Juz 6 of the Quran: Tafsir Ibn Kathir Summary
+
+## Coverage
+
+Juz 6 spans from Surah Al-Nisa (Chapter 4), verse 24 through Surah Al-Nisa, verse 147. This entire juz remains within the fourth chapter of the Quran, which is primarily concerned with social legislation, family law, and the rights and responsibilities of believers.
+
+## Major Themes and Stories
+
+This portion of Al-Nisa delves deeply into several interconnected themes that form the backbone of Islamic jurisprudence and personal conduct.
+
+**Marriage and Family Matters:** The juz begins with detailed rulings on permissible marriages, including provisions regarding captives and slave women, reflecting the historical context while establishing principles of honor and consent. Ibn Kathir emphasizes that these rulings, though addressing specific circumstances, uphold human dignity and establish merciful frameworks within their historical setting.
+
+**Women's Rights and Financial Security:** A significant portion addresses the rights of women, particularly regarding their mahr (dower) as a mandatory gift from the groom. This establishes women's financial independence and security, marking a revolutionary protection of women's property rights in seventh-century Arabia.
+
+**Dealing with Hypocrisy and Weak Faith:** The juz contains powerful passages addressing the munafiqun (hypocrites) who claimed faith verbally while harboring doubt and disloyalty. Ibn Kathir emphasizes Allah's complete knowledge of their hidden intentions, serving as a stern warning against superficial faith.
+
+## Key Rulings and Guidance
+
+Several crucial legal and ethical principles emerge in this juz:
+
+**Inheritance and Guardianship:** Detailed guidelines address the appointment of guardians for orphans and the sacred responsibility this entails, protecting vulnerable children from exploitation.
+
+**Witness Requirements:** The juz establishes standards for testimony, particularly regarding financial transactions and marriage contracts, ensuring justice and preventing fraud.
+
+**Ethical Conduct in Business:** Clear guidance addresses fair dealing, prohibition of consuming wealth unlawfully, and the importance of mutual consent in transactions.
+
+**Treatment of Parents:** Strong emphasis is placed on honoring parents and providing for them in their old age, establishing filial duty as a cornerstone of Islamic ethics alongside monotheism.
+
+**Reconciliation and Forgiveness:** The juz encourages believers to forgive one another and emphasizes Allah's vastness in pardoning those who repent, promoting social harmony and spiritual growth.
+
+## Overarching Message
+
+The overarching message of Juz 6 is that Islam provides comprehensive guidance for building a just, moral society founded on mutual rights and responsibilities. Whether addressing marriage, family relations, financial dealings, or matters of faith and hypocrisy, the Quranic verses establish that Allah is fully aware of human intentions and actions, and that believers are accountable for both their outward conduct and inner states.
+
+Ibn Kathir's commentary emphasizes that these rulings are not arbitrary restrictions but rather merciful frameworks designed to protect human dignity, especially for vulnerable groups including women, orphans, and the poor. The repeated references to Allah's omniscience serve as both warning and comfort—warning against hypocrisy and wrongdoing, and comfort that righteous deeds are never hidden from their ultimate Reckoner.
+
+By the end of this juz, readers understand that Islamic legislation is holistic, addressing every dimension of human life while demanding sincerity, justice, and compassion as the hallmarks of true belief.</div>
+
+            <div class="share-row">
+                <a class="share-btn whatsapp" id="wa-share" href="#" target="_blank" rel="noopener">
+                    Share on WhatsApp
+                </a>
+                <button class="share-btn copy" onclick="copyLink()">
+                    Copy link
+                </button>
+            </div>
+        </div>
+
+        <div class="full-tafsir">
+            <button class="full-tafsir-toggle" onclick="toggleTafsir()">
+                Read Full Tafsir ▾
+            </button>
+            <div class="full-tafsir-content" id="tafsir-body">
+                
+            </div>
+        </div>
+
+        <nav class="archive-nav">
+            <a href="juz-6.html">Permalink for this juz</a>
+        </nav>
+
+        <footer>
+            Tafsir source: Quran.com API (Ibn Kathir, abridged) &middot; Summary by Claude
+        </footer>
+    </div>
+
+    <script>
+        // WhatsApp share link
+        const title = `Juz 6 (La Yuhibbullah) — Daily Tafsir Summary`;
+        const url = window.location.href;
+        const waText = encodeURIComponent(`${title}\n\n${url}`);
+        document.getElementById('wa-share').href = `https://wa.me/?text=${waText}`;
+
+        function toggleTafsir() {
+            const body = document.getElementById('tafsir-body');
+            const btn = document.querySelector('.full-tafsir-toggle');
+            body.classList.toggle('open');
+            btn.textContent = body.classList.contains('open')
+                ? 'Hide Full Tafsir ▴'
+                : 'Read Full Tafsir ▾';
+        }
+
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                const btn = document.querySelector('.share-btn.copy');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy link', 2000);
+            });
+        }
+    </script>
+</body>
+</html>

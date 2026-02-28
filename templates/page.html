@@ -261,10 +261,105 @@
 
         .share-btn.whatsapp:hover { border-color: #25d366; color: #25d366; }
 
-        .share-btn.listen.active {
-            background: var(--gold-faint);
-            border-color: var(--gold);
+        /* ══════ Top navigation ══════ */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0 0;
+        }
+
+        .top-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-decoration: none;
+            letter-spacing: 0.02em;
+            transition: color 0.15s;
+        }
+
+        .top-nav a:hover {
             color: var(--gold);
+        }
+
+        /* ══════ Audio player bar ══════ */
+        .audio-player {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            padding: 0.9rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .audio-play-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--gold);
+            color: var(--surface);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .audio-play-btn:hover {
+            background: var(--gold-light);
+            transform: scale(1.05);
+        }
+
+        .audio-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .audio-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .audio-progress-row {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-top: 0.35rem;
+        }
+
+        .audio-progress-bar {
+            flex: 1;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .audio-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--gold);
+            border-radius: 2px;
+            transition: width 0.1s linear;
+        }
+
+        .audio-time {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
         }
 
         /* ══════ Full tafsir ══════ */
@@ -482,25 +577,6 @@
             color: var(--surface);
         }
 
-        /* ══════ Navigation ══════ */
-        .archive-nav {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 3rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border);
-            font-size: 0.85rem;
-        }
-
-        .archive-nav a {
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-        }
-
-        .archive-nav a:hover { text-decoration: underline; }
-
         /* ══════ Footer ══════ */
         footer {
             text-align: center;
@@ -524,6 +600,10 @@
 </head>
 <body>
     <div class="container">
+        <nav class="top-nav">
+            <a href="index.html">&larr; All Juz</a>
+        </nav>
+
         <header>
             <div class="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>
             <div class="juz-label">Daily Tafsir Ibn Kathir</div>
@@ -534,6 +614,8 @@
         </header>
 
         <div class="ornament-line"><span>&#10022;</span></div>
+
+        {{AUDIO_PLAYER}}
 
         <div class="summary-card">
             <h2>Today's Summary</h2>
@@ -546,10 +628,7 @@
                 <button class="share-btn copy" onclick="copyLink()">
                     Copy link
                 </button>
-                {{LISTEN_BUTTON}}
             </div>
-
-            {{AUDIO_ELEMENT}}
         </div>
 
         <div class="full-tafsir">
@@ -568,11 +647,6 @@
         </div>
 
         <button class="back-to-top" id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#9650;</button>
-
-        <nav class="archive-nav">
-            <a href="index.html">&larr; All Juz</a>
-            <a href="juz-{{JUZ_NUMBER}}.html">Permalink</a>
-        </nav>
 
         <footer>
             Tafsir source: Quran.com API (Ibn Kathir, abridged) &middot; Summary by Claude
@@ -635,28 +709,49 @@
             });
         }
 
-        // ── Read Aloud (AI Audio) ──
-        const readBtn = document.getElementById('read-aloud-btn');
+        // ── Audio Player ──
         const audio = document.getElementById('tts-audio');
+        const playBtn = document.getElementById('audio-play-btn');
+        const progressFill = document.getElementById('audio-progress-fill');
+        const progressBar = document.getElementById('audio-progress-bar');
+        const timeDisplay = document.getElementById('audio-time');
 
-        function toggleReadAloud() {
-            if (!audio) { alert('Audio not available.'); return; }
+        function fmtTime(s) {
+            const m = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return m + ':' + (sec < 10 ? '0' : '') + sec;
+        }
+
+        function toggleAudio() {
+            if (!audio) return;
             if (audio.paused) {
                 audio.play();
-                readBtn.classList.add('active');
-                readBtn.innerHTML = '&#9724; Pause';
+                playBtn.innerHTML = '&#9724;';
             } else {
                 audio.pause();
-                readBtn.classList.remove('active');
-                readBtn.innerHTML = '&#9654; Read aloud';
+                playBtn.innerHTML = '&#9654;';
             }
         }
 
         if (audio) {
-            audio.addEventListener('ended', () => {
-                readBtn.classList.remove('active');
-                readBtn.innerHTML = '&#9654; Read aloud';
+            audio.addEventListener('timeupdate', () => {
+                if (audio.duration) {
+                    const pct = (audio.currentTime / audio.duration) * 100;
+                    progressFill.style.width = pct + '%';
+                    timeDisplay.textContent = fmtTime(audio.currentTime) + ' / ' + fmtTime(audio.duration);
+                }
             });
+            audio.addEventListener('ended', () => {
+                playBtn.innerHTML = '&#9654;';
+                progressFill.style.width = '0%';
+            });
+            if (progressBar) {
+                progressBar.addEventListener('click', (e) => {
+                    const rect = progressBar.getBoundingClientRect();
+                    const pct = (e.clientX - rect.left) / rect.width;
+                    audio.currentTime = pct * audio.duration;
+                });
+            }
         }
     </script>
 </body>

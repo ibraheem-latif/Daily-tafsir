@@ -625,8 +625,8 @@ def main():
     print(f"  Summary: {len(summary.split())} words")
 
     # Generate HTML
-    print("Generating HTML pages...")
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    print("Generating HTML pages...")
     page_html = build_html(juz_number, summary, tafsirs, word_count)
 
     # Write juz page

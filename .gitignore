@@ -4,3 +4,9 @@ __pycache__/
 site/
 .env
 venv/
+.venv/
+.venv-tts/
+tts/audio/
+tts/reference/*.wav
+*.wav
+*.mp3

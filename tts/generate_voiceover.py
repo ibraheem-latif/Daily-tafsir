@@ -42,19 +42,19 @@ AUDIO_DIR = os.path.join(BASE_DIR, "audio")
 
 TTS_PARAMS = {
     "exaggeration": 0.2,
-    "cfg_weight": 1.5,
+    "cfg_weight": 1.0,      # lower = slower, more deliberate pacing
     "temperature": 0.5,
 }
 
-MAX_WORDS = 65          # safe limit — keeps well under 1000-token ceiling
+MAX_WORDS = 55          # safe limit — keeps well under 1000-token ceiling
 MIN_WORDS = 30          # minimum chunk size — merge small orphans back
-SILENCE_SECS = 0.7      # pause between chunks in final output
+SILENCE_SECS = 1.2      # pause between chunks — natural breath
 SILENCE_THRESH_DB = -35  # threshold for trimming trailing silence
 MAX_INTERNAL_SILENCE = 0.5  # compress any internal silence longer than this
 
 # Quality thresholds
 TOKEN_CEILING_SECS = 39.5  # anything >= this likely hit the 40s token limit
-MIN_WORDS_PER_SEC = 1.8    # below this = too slow / padding / silence
+MIN_WORDS_PER_SEC = 1.5    # below this = too slow / padding / silence
 MAX_WORDS_PER_SEC = 4.0    # above this = too fast / skipping words
 MIN_DURATION_SECS = 3.0    # suspiciously short
 MAX_RETRIES = 3            # retry bad generations this many times
@@ -177,6 +177,40 @@ def chunk_script(text):
 # Audio generation + quality validation
 # ---------------------------------------------------------------------------
 
+def detect_repetition(wav, sr, min_segment_secs=2.0, threshold=0.85):
+    """Detect repeated audio segments by cross-correlating chunks of the waveform.
+
+    Splits audio into segments and compares each pair using normalized
+    cross-correlation. If any two non-adjacent segments are highly correlated,
+    the model likely looped.
+
+    Returns (is_repetitive, score) tuple.
+    """
+    segment_len = int(min_segment_secs * sr)
+    audio = wav.squeeze()
+    if audio.shape[0] < segment_len * 3:
+        return False, 0.0  # too short to have meaningful repetition
+
+    # Split into fixed-size segments
+    n_segments = audio.shape[0] // segment_len
+    segments = [audio[i * segment_len:(i + 1) * segment_len].float() for i in range(n_segments)]
+
+    max_corr = 0.0
+    for i in range(len(segments)):
+        for j in range(i + 2, len(segments)):  # skip adjacent (natural similarity)
+            a, b = segments[i], segments[j]
+            a_norm = a - a.mean()
+            b_norm = b - b.mean()
+            a_std = a_norm.norm()
+            b_std = b_norm.norm()
+            if a_std < 1e-6 or b_std < 1e-6:
+                continue
+            corr = (a_norm * b_norm).sum() / (a_std * b_std)
+            max_corr = max(max_corr, corr.item())
+
+    return max_corr >= threshold, max_corr
+
+
 def validate_chunk(wav, sr, word_count):
     """Check if generated audio passes quality gates.
 
@@ -196,6 +230,11 @@ def validate_chunk(wav, sr, word_count):
 
     if wps > MAX_WORDS_PER_SEC:
         return False, f"too fast ({wps:.1f} w/s > {MAX_WORDS_PER_SEC})"
+
+    # Detect repetition (model looping on itself)
+    is_repetitive, corr_score = detect_repetition(wav, sr)
+    if is_repetitive:
+        return False, f"repetition detected (corr={corr_score:.2f})"
 
     return True, f"ok ({dur:.1f}s, {wps:.1f} w/s)"
 

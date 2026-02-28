@@ -2,9 +2,8 @@ name: Daily Tafsir
 
 on:
   schedule:
-    # Runs at 19:00 UTC daily — after Maghreb/Iftar (UK Ramadan 2026)
-    # Maghreb ranges 17:34–18:37 UTC, so page is ready during Iftar
-    - cron: '0 19 * * *'
+    # Runs at 17:30 GMT daily
+    - cron: '30 17 * * *'
   workflow_dispatch:
     inputs:
       juz_number:

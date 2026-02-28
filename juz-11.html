@@ -608,6 +608,7 @@
                     &#9654; Read aloud
                 </button>
             </div>
+        <audio id="tts-audio" preload="none"><source src="juz-11.mp3" type="audio/mpeg"></audio>
         </div>
 
         <div class="full-tafsir">
@@ -993,64 +994,29 @@
             });
         }
 
-        // ── Read Aloud (Web Speech API) ──
+        // ── Read Aloud (AI Audio) ──
         const readBtn = document.getElementById('read-aloud-btn');
-        let ttsUtterance = null;
-        let ttsPlaying = false;
-
-        function getSummaryText() {
-            const el = document.querySelector('.summary-text');
-            return el ? el.innerText : '';
-        }
+        const audio = document.getElementById('tts-audio');
 
         function toggleReadAloud() {
-            const synth = window.speechSynthesis;
-            if (!synth) { alert('Your browser does not support text-to-speech.'); return; }
-
-            if (ttsPlaying) {
-                if (synth.paused) {
-                    synth.resume();
-                    readBtn.innerHTML = '&#9724; Pause';
-                } else {
-                    synth.pause();
-                    readBtn.innerHTML = '&#9654; Resume';
-                }
-                return;
-            }
-
-            synth.cancel();
-            const text = getSummaryText();
-            if (!text) return;
-
-            ttsUtterance = new SpeechSynthesisUtterance(text);
-            ttsUtterance.rate = 0.95;
-            ttsUtterance.pitch = 1;
-
-            // Prefer a natural English voice
-            const voices = synth.getVoices();
-            const preferred = voices.find(v => /english.*natural|samantha|daniel|google.*uk/i.test(v.name))
-                || voices.find(v => v.lang.startsWith('en'));
-            if (preferred) ttsUtterance.voice = preferred;
-
-            ttsUtterance.onstart = () => {
-                ttsPlaying = true;
+            if (!audio) { alert('Audio not available.'); return; }
+            if (audio.paused) {
+                audio.play();
                 readBtn.classList.add('active');
                 readBtn.innerHTML = '&#9724; Pause';
-            };
-            ttsUtterance.onend = () => resetTTS();
-            ttsUtterance.onerror = () => resetTTS();
-
-            synth.speak(ttsUtterance);
+            } else {
+                audio.pause();
+                readBtn.classList.remove('active');
+                readBtn.innerHTML = '&#9654; Read aloud';
+            }
         }
 
-        function resetTTS() {
-            ttsPlaying = false;
-            readBtn.classList.remove('active');
-            readBtn.innerHTML = '&#9654; Read aloud';
+        if (audio) {
+            audio.addEventListener('ended', () => {
+                readBtn.classList.remove('active');
+                readBtn.innerHTML = '&#9654; Read aloud';
+            });
         }
-
-        // Ensure voices are loaded (some browsers load async)
-        if (window.speechSynthesis) speechSynthesis.getVoices();
     </script>
 </body>
 </html>
